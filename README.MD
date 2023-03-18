@@ -5,27 +5,27 @@ This project is designed to generate test data in Stripe using fake data. It cre
 ## Setup and Configuration
 
 1. Clone the repository:
-\```
+`
 git clone https://github.com/runrudyrun/stripe_mock_data_factory.git
-\```
+`
 
 2. Install dependencies:
-\```
+`
 pip install -r requirements.txt
-\```
+`
 
 3. Set up your Stripe API key as an environment variable:
-\```
+`
 export STRIPE_API_KEY=your_test_api_key
-\```
+`
 
 ## Usage
 
 To generate the test data, run the main script:
 
-\```
+`
 python init_stripe_project.py
-\```
+`
 
 ## TODO
 
