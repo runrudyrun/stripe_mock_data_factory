@@ -23,6 +23,16 @@ for i in range(params['n_customers']):
     factory.create_customer()
 print(f'{params["n_customers"]} customers created')
 
+for c in factory.customers:
+    billing_details = {
+        "name": c.name,
+        "email": c.email,
+        "phone": c.phone,
+    }
+    payment_method = factory.create_payment_method(billing_details)
+    payment_method.attach(c.id)
+    payment_method.set_default_payment_method(c.id)
+
 for i in range(params['n_products']):
     factory.create_product()
 print(f'{params["n_products"]} products created')

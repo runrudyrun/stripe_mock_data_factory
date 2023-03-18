@@ -1,6 +1,6 @@
 from faker import Faker
 import random
-from models import Customer, Charge, Product, Subscription, Plan, Price 
+from models import Customer, Charge, Product, Subscription, Plan, Price, PaymentMethod
 
 fake = Faker()
 
@@ -12,12 +12,16 @@ class StripeFactory:
         self.subscriptions = []
         self.products = []
         self.prices = []
+        self.payment_methods = []
         
     
     def create_customer(self):
         name = fake.name()
         email = fake.email()
-        phone = fake.phone_number()
+        phone = '+{}{}'.format(
+                fake.country_code(representation="alpha-2"),
+                fake.numerify('##########')
+            )
         line1 = fake.street_address()
         line2 = fake.secondary_address()
         city = fake.city()
@@ -79,7 +83,7 @@ class StripeFactory:
         }]
         cancel_at_period_end = False
         currency = 'usd'
-        default_payment_method = fake.credit_card_number()
+        default_payment_method = None 
         description = fake.sentence()
         metadata = {
             'subscription_type': fake.word(ext_word_list=[
@@ -132,19 +136,37 @@ class StripeFactory:
         currency = 'usd'
         rel_product = product
         unit_amount = fake.random_int(min=1, max=1000000)
-        active = fake.pybool()
+        active = True
         metadata = {"key": fake.word(), "value": fake.word()}
         nickname = fake.word()
-        recurring = {"interval": fake.word()}
+        recurring = {"interval": random.choice(['month', 'year', 'week', 'day'])}
 
-        self.prices.append(
-            Price(
-                currency=currency,
-                product=rel_product,
-                unit_amount=unit_amount,
-                active=active,
-                metadata=metadata,
-                nickname=nickname,
-                recurring=recurring
-            )
-        )
+        price = Price(
+            currency=currency,
+            product=rel_product.id,
+            unit_amount=unit_amount,
+            active=active,
+            metadata=metadata,
+            nickname=nickname,
+            recurring=recurring
+        ).create()
+  
+        self.prices.append(price)
+        return price
+    
+
+    def create_payment_method(self, billing_details):
+        test_cards = [
+            {"number": "4242424242424242", "exp_month": 12, "exp_year": 2024, "cvc": "123"},  # Visa
+            {"number": "4000056655665556", "exp_month": 12, "exp_year": 2024, "cvc": "123"},  # Visa (debit)
+            {"number": "5555555555554444", "exp_month": 12, "exp_year": 2024, "cvc": "123"},  # Mastercard
+            {"number": "5200828282828210", "exp_month": 12, "exp_year": 2024, "cvc": "123"},  # Mastercard (debit)
+            {"number": "378282246310005", "exp_month": 12, "exp_year": 2024, "cvc": "1234"},  # American Express
+            {"number": "6011111111111117", "exp_month": 12, "exp_year": 2024, "cvc": "123"},  # Discover
+        ]
+
+        card = random.choice(test_cards) 
+        payment_method = PaymentMethod('card', card, billing_details)
+        payment_method.create()
+        self.payment_methods.append(payment_method)
+        return payment_method

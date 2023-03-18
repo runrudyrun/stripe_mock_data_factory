@@ -207,6 +207,7 @@ class Plan():
 
         return f'Plan({plan})'
 
+
 class Price:
     def __init__(self, currency, product, unit_amount, active=True, metadata=None, nickname=None, recurring=None):
         self.currency = currency
@@ -246,3 +247,41 @@ class Price:
         }
 
         return f'Price({price})'
+    
+class PaymentMethod:
+    def __init__(self, type, card, billing_details):
+        self.type = type
+        self.card = card
+        self.billing_details = billing_details
+        self.id = None
+
+    def create(self):
+        payment_method = stripe.PaymentMethod.create(
+            type=self.type,
+            card=self.card,
+            billing_details=self.billing_details,
+        )
+        self.id = payment_method.id
+        return self
+
+    def attach(self, customer_id):
+        stripe.PaymentMethod.attach(
+            self.id,
+            customer=customer_id,
+        )
+
+    def set_default_payment_method(self, customer_id):
+        stripe.Customer.modify(
+            customer_id,
+            invoice_settings={
+                "default_payment_method": self.id,
+            },
+        )
+
+    def __repr__(self):
+        payment_method = {
+            'type': self.type,
+            'card': self.card,
+            'billing_details': self.billing_details,
+        }
+        return f'PaymentMethod({payment_method})'
